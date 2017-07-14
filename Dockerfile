@@ -1,15 +1,10 @@
-FROM debian 
-
+FROM debian
 MAINTAINER TuRzAm
 
-ENV PORT 32500
-ENV WEBROOT ""
-
- 
-RUN apt-get update && apt-get install python python-pip python-dev git libjpeg-dev -y
-
-# Run commands as the comicstreamer user
-RUN adduser \ 
+ENV PORT=32500 WEBROOT=""
+RUN apt-get update && \ 
+    apt-get install python python-pip python-dev git libjpeg-dev -y && \
+    adduser \ 
 	--disabled-login \ 
 	--shell /bin/bash \ 
 	--gecos "" \ 
@@ -18,29 +13,16 @@ RUN adduser \
 # Copy & rights to folders
 COPY run.sh /home/comicstreamer/run.sh
 
-RUN chmod 777 /home/comicstreamer/run.sh
-
-# create the comics directory
-RUN mkdir /comics && chown comicstreamer /comics
-
-
-WORKDIR /home/comicstreamer
-
-RUN git clone https://github.com/davide-romanini/ComicStreamer.git 
+RUN chmod 777 /home/comicstreamer/run.sh && \
+    mkdir /comics && chown comicstreamer /comics &&\
+    git clone https://github.com/davide-romanini/ComicStreamer.git /home/comicstreamer/ComicStreamer
 
 WORKDIR /home/comicstreamer/ComicStreamer
-
-RUN pip install `cat requirements.txt`
-
-RUN chown comicstreamer -R .
-
+RUN pip install -r requirements.txt && \
+    chown comicstreamer -R .
 USER comicstreamer 
-
 RUN paver libunrar
-
 # Expose default port : 32500
 EXPOSE ${PORT}
-
 VOLUME "/comics" 
-
 ENTRYPOINT ["/home/comicstreamer/run.sh"]
